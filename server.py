@@ -6,7 +6,7 @@ app = Flask(__name__)
 # For first tests you can allow all origins: CORS(app)
 # but let's already restrict to the Render static site.
 # We'll update this URL once we know the frontend URL.
-ALLOWED_ORIGINS = ["*"]  # temporarily allow all; tighten later
+ALLOWED_ORIGINS = ["https://sketchpad-frontend.onrender.com"]  # temporarily allow all; tighten later
 
 CORS(app, origins=ALLOWED_ORIGINS)
 
@@ -34,3 +34,4 @@ def upsert_sketch(sketch_id):
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
+
