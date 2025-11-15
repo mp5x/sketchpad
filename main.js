@@ -21,6 +21,15 @@ import { downloadSketch, hookLoadInput } from "./storage.js";
 let canvas, statusEl;
 let toolButtons, catButtons, clearBtn, saveBtn, loadBtn, loadInput;
 
+function getOrCreateSketchId() {
+  let id = window.location.hash.slice(1).trim();
+  if (!id) {
+    id = "sketch-" + Math.random().toString(36).slice(2, 10);
+    window.history.replaceState(null, "", "#" + id);
+  }
+  return id;
+}
+
 function setStatus(msg) {
   if (statusEl) statusEl.textContent = msg;
 }
@@ -383,3 +392,4 @@ function init() {
 }
 
 window.addEventListener("load", init);
+
