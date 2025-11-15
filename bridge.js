@@ -11,7 +11,7 @@ export function sendShapes() {
     shapes: state.shapes
   };
 
-  return fetch(BASE + "/from_browser", {
+  return fetch(`${BASE}/sketches/${encodeURIComponent(SKETCH_ID)}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)

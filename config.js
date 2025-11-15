@@ -1,5 +1,5 @@
 // config.js
-export const BASE = "http://127.0.0.1:5000";
+export const BASE = "https://sketchpad-api.onrender.com"; // your real API URL
 
 export const CATEGORIES = {
   wall:    { label: "Wall",    color: "#d33" },
