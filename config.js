@@ -1,5 +1,5 @@
 // config.js
-export const BASE = "https://sketchpad-api.onrender.com"; // your real API URL
+export const BASE = "https://sketchpad-q5qj.onrender.com"; // your real API URL
 
 export const CATEGORIES = {
   wall:    { label: "Wall",    color: "#d33" },
@@ -12,3 +12,4 @@ export const CATEGORIES = {
 
 export const HANDLE_HIT_RADIUS = 10;
 export const HANDLE_SIZE = 6;
+
