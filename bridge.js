@@ -29,13 +29,13 @@ export function getSketchId() {
 export function sendShapes() {
   if (!SKETCH_ID) {
     console.warn("No sketch ID set, not sending.");
-    return;
+    return Promise.resolve();
   }
 
   const canvas = getCanvas();
   if (!canvas) {
     console.warn("No canvas available, not sending.");
-    return;
+    return Promise.resolve();
   }
 
   const payload = {
@@ -47,7 +47,7 @@ export function sendShapes() {
     shapes: state.shapes
   };
 
-  fetch(`${BASE}/sketches/${encodeURIComponent(SKETCH_ID)}`, {
+  return fetch(`${BASE}/sketches/${encodeURIComponent(SKETCH_ID)}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
@@ -82,3 +82,4 @@ export async function fetchSketch() {
     return null;
   }
 }
+
