@@ -20,6 +20,7 @@ import { downloadSketch, hookLoadInput } from "./storage.js";
 
 let canvas, statusEl;
 let toolButtons, catButtons, clearBtn, saveBtn, loadBtn, loadInput;
+let syncBtn, syncStatusEl;
 
 function setStatus(msg) {
   if (statusEl) statusEl.textContent = msg;
@@ -414,6 +415,9 @@ async function init() {
   saveBtn = document.getElementById("save");
   loadBtn = document.getElementById("load");
   loadInput = document.getElementById("loadInput");
+  syncBtn = document.getElementById("syncToRhino");
+  syncStatusEl = document.getElementById("syncStatus");
+
 
   const sketchId = getOrCreateSketchId();
   setSketchId(sketchId);
@@ -428,6 +432,7 @@ async function init() {
   setupClearButton();
   setupCanvasEvents();
   setupSaveLoad();
+  setupSyncButton();
 
   setStatus(
     `Sketch: ${sketchId} — Tool: ${state.currentTool} — Category: ${CATEGORIES[state.currentCategory].label} — right-click to finish polygon`
@@ -435,6 +440,28 @@ async function init() {
   redraw();
 }
 
+function setupSyncButton() {
+  if (!syncBtn || !syncStatusEl) return;
+
+  syncBtn.addEventListener("click", async () => {
+    // Show immediate feedback
+    syncStatusEl.textContent = "Syncing to server…";
+
+    const start = new Date();
+    await sendShapes();  // this may take a while (Render cold start, network, etc.)
+    const end = new Date();
+
+    const hh = end.getHours().toString().padStart(2, "0");
+    const mm = end.getMinutes().toString().padStart(2, "0");
+    const ss = end.getSeconds().toString().padStart(2, "0");
+
+    const elapsed = ((end - start) / 1000).toFixed(1);
+
+    syncStatusEl.textContent = `Synced at ${hh}:${mm}:${ss} (took ${elapsed}s). You can sync in Rhino now.`;
+  });
+}
+
 window.addEventListener("load", () => {
   init(); // async; we don't need to await it here
 });
+
