@@ -15,20 +15,11 @@ import {
   worldToLocal
 } from "./geometry.js";
 import { initDrawing, redraw, drawPreview, getCanvas } from "./drawing.js";
-import { sendShapes } from "./bridge.js";
+import { sendShapes, setSketchId, fetchSketch } from "./bridge.js";
 import { downloadSketch, hookLoadInput } from "./storage.js";
 
 let canvas, statusEl;
 let toolButtons, catButtons, clearBtn, saveBtn, loadBtn, loadInput;
-
-function getOrCreateSketchId() {
-  let id = window.location.hash.slice(1).trim();
-  if (!id) {
-    id = "sketch-" + Math.random().toString(36).slice(2, 10);
-    window.history.replaceState(null, "", "#" + id);
-  }
-  return id;
-}
 
 function setStatus(msg) {
   if (statusEl) statusEl.textContent = msg;
@@ -40,6 +31,17 @@ function getMousePos(evt) {
     x: evt.clientX - rect.left,
     y: evt.clientY - rect.top
   };
+}
+
+// ----------------- Helper: resolve sketch ID -----------------
+
+function getOrCreateSketchId() {
+  let id = window.location.hash.slice(1).trim();
+  if (!id) {
+    id = "sketch-" + Math.random().toString(36).slice(2, 10);
+    window.history.replaceState(null, "", "#" + id);
+  }
+  return id;
 }
 
 // ----------------- Shape hit helpers -----------------
@@ -69,7 +71,7 @@ function setupToolButtons() {
       state.dragging = false;
       state.dragMode = null;
       setStatus(
-        `Tool: ${state.currentTool} — Category: ${CATEGORIES[state.currentCategory].label}`
+        `Sketch: ${getSketchIdSafe()} — Tool: ${state.currentTool} — Category: ${CATEGORIES[state.currentCategory].label}`
       );
     });
   });
@@ -91,7 +93,7 @@ function setupCategoryButtons() {
       }
 
       setStatus(
-        `Tool: ${state.currentTool} — Category: ${CATEGORIES[state.currentCategory].label}`
+        `Sketch: ${getSketchIdSafe()} — Tool: ${state.currentTool} — Category: ${CATEGORIES[state.currentCategory].label}`
       );
     });
   });
@@ -150,7 +152,7 @@ function onMouseDown(e) {
       const catKey = shape.category || state.currentCategory;
       state.currentCategory = catKey;
       setStatus(
-        `Tool: ${state.currentTool} — Selected: ${shape.type} #${shape.id} — Category: ${CATEGORIES[catKey].label}`
+        `Sketch: ${getSketchIdSafe()} — Tool: ${state.currentTool} — Selected: ${shape.type} #${shape.id} — Category: ${CATEGORIES[catKey].label}`
       );
 
       // Handle-based edits
@@ -366,9 +368,44 @@ function finalizeShape(x, y) {
   }
 }
 
+// ----------------- Server sync: initial restore -----------------
+
+function getSketchIdSafe() {
+  // tiny helper just to show it in status text
+  return window.location.hash.slice(1).trim() || "unknown";
+}
+
+async function restoreSketchFromServer(sketchId) {
+  const existing = await fetchSketch();
+  if (!existing) return;
+
+  const canvas = getCanvas();
+  if (existing.canvas) {
+    if (typeof existing.canvas.width === "number") {
+      canvas.width = existing.canvas.width;
+    }
+    if (typeof existing.canvas.height === "number") {
+      canvas.height = existing.canvas.height;
+    }
+  }
+
+  resetState();
+  if (Array.isArray(existing.shapes)) {
+    state.shapes = existing.shapes;
+    // compute nextShapeId to avoid ID collisions
+    const maxId = existing.shapes.reduce(
+      (m, s) => Math.max(m, typeof s.id === "number" ? s.id : 0),
+      0
+    );
+    state.nextShapeId = maxId + 1;
+  }
+
+  redraw();
+}
+
 // ----------------- Init -----------------
 
-function init() {
+async function init() {
   canvas = document.getElementById("pad");
   statusEl = document.getElementById("status");
   toolButtons = document.querySelectorAll("button[data-tool]");
@@ -378,7 +415,14 @@ function init() {
   loadBtn = document.getElementById("load");
   loadInput = document.getElementById("loadInput");
 
+  const sketchId = getOrCreateSketchId();
+  setSketchId(sketchId);
+
   initDrawing(canvas);
+
+  // Try to restore existing sketch from the server
+  await restoreSketchFromServer(sketchId);
+
   setupToolButtons();
   setupCategoryButtons();
   setupClearButton();
@@ -386,10 +430,11 @@ function init() {
   setupSaveLoad();
 
   setStatus(
-    `Tool: ${state.currentTool} — Category: ${CATEGORIES[state.currentCategory].label} — right-click to finish polygon`
+    `Sketch: ${sketchId} — Tool: ${state.currentTool} — Category: ${CATEGORIES[state.currentCategory].label} — right-click to finish polygon`
   );
   redraw();
 }
 
-window.addEventListener("load", init);
-
+window.addEventListener("load", () => {
+  init(); // async; we don't need to await it here
+});
