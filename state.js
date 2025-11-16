@@ -9,7 +9,8 @@ export const state = {
   dragMode: null,      // 'move', 'rotate', 'resize-rect', 'resize-circle', 'move-poly-point'
   dragStart: { x: 0, y: 0 },
   shapeSnapshot: null,
-  nextShapeId: 1
+  nextShapeId: 1,
+  drawing: false       // <--- add this
 };
 
 export function resetState() {
@@ -20,4 +21,5 @@ export function resetState() {
   state.dragMode = null;
   state.shapeSnapshot = null;
   state.nextShapeId = 1;
+  state.drawing = false;
 }
