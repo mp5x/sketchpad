@@ -61,7 +61,13 @@
     <input type="file" id="loadInput" accept=".json" style="display:none">
     <button id="load">Load sketch</button>
   </div>
-
+  
+  <!-- Sync to Rhino -->
+  <div class="toolbar">
+    <button id="syncToRhino">Sync for Rhino</button>
+    <span id="syncStatus"></span>
+  </div>
+  
   <canvas id="pad" width="800" height="600"></canvas>
   <div id="status"></div>
 
@@ -69,3 +75,4 @@
   <script type="module" src="main.js"></script>
 </body>
 </html>
+
